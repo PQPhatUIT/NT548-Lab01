@@ -1,4 +1,4 @@
-﻿resource "aws_security_group" "public_ec2" {
+resource "aws_security_group" "public_ec2" {
   name        = "${var.name}-public-ec2-sg"
   description = "Allow SSH from my IP only"
   vpc_id      = var.vpc_id
