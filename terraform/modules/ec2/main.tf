@@ -26,4 +26,8 @@ resource "aws_instance" "this" {
     encrypted = true
   }
   tags = { Name = var.name }
+
+  lifecycle {
+    ignore_changes = [ami] # không thay EC2 khi AWS ra AMI mới
+  }
 }
