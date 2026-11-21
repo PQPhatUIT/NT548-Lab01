@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Security groups for public and private EC2
+Parameters:
+Name: {Type: String}
+VpcId: {Type: 'AWS::EC2::VPC::Id'}
+MyIp:
+Type: String
+AllowedPattern: '^[0-9.]+/32$'
+ConstraintDescription: Phải có dạng a.b.c.d/32
+Resources:
+PublicSg:
+Type: AWS::EC2::SecurityGroup
+Properties:
+GroupDescription: SSH from my IP only
+VpcId: !Ref VpcId
+SecurityGroupIngress:
+- {IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: !Ref MyIp, Description: SSH from my
+IP}
+Tags: [{Key: Name, Value: !Sub '${Name}-public-ec2-sg'}]
+PrivateSg:
+Type: AWS::EC2::SecurityGroup
+Properties:
+GroupDescription: SSH from Public EC2 SG only
+VpcId: !Ref VpcId
+SecurityGroupIngress:
+- {IpProtocol: tcp, FromPort: 22, ToPort: 22, SourceSecurityGroupId: !Ref PublicSg,
+Description: SSH from Public EC2}
+Tags: [{Key: Name, Value: !Sub '${Name}-private-ec2-sg'}]
+Outputs:
+PublicSgId: {Value: !GetAtt PublicSg.GroupId}
+PrivateSgId: {Value: !GetAtt PrivateSg.GroupId}

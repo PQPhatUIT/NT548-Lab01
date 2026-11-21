@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: NT548 Lab01 - nested stacks
+Parameters:
+Name: {Type: String, Default: nt548-cfn}
+AZ: {Type: 'AWS::EC2::AvailabilityZone::Name', Default: us-east-1a}
+MyIp: {Type: String}
+KeyName: {Type: 'AWS::EC2::KeyPair::KeyName'}
+InstanceType: {Type: String, Default: t3.micro}
+Resources:
+VpcStack:
+Type: AWS::CloudFormation::Stack
+Properties:
+TemplateURL: ./vpc.yaml
+Parameters: {Name: !Ref Name, AZ: !Ref AZ}
+NatStack:
+Type: AWS::CloudFormation::Stack
+Properties:
+TemplateURL: ./nat.yaml
+Parameters:
+Name: !Ref Name
+PublicSubnetId: !GetAtt VpcStack.Outputs.PublicSubnetId
+RouteStack:
+Type: AWS::CloudFormation::Stack
+Properties:
+TemplateURL: ./route-tables.yaml
+Parameters:
+Name: !Ref Name
+VpcId: !GetAtt VpcStack.Outputs.VpcId
+IgwId: !GetAtt VpcStack.Outputs.IgwId
+NatGatewayId: !GetAtt NatStack.Outputs.NatGatewayId
+PublicSubnetId: !GetAtt VpcStack.Outputs.PublicSubnetId
+PrivateSubnetId: !GetAtt VpcStack.Outputs.PrivateSubnetId
+SgStack:
+Type: AWS::CloudFormation::Stack
+Properties:
+TemplateURL: ./security-groups.yaml
+Parameters:
+Name: !Ref Name
+VpcId: !GetAtt VpcStack.Outputs.VpcId
+MyIp: !Ref MyIp
+PublicEc2Stack:
+Type: AWS::CloudFormation::Stack
+Properties:
+TemplateURL: ./ec2.yaml
+Parameters:
+InstanceName: !Sub '${Name}-public-ec2'
+SubnetId: !GetAtt VpcStack.Outputs.PublicSubnetId
+SecurityGroupId: !GetAtt SgStack.Outputs.PublicSgId
+KeyName: !Ref KeyName
+InstanceType: !Ref InstanceType
+PrivateEc2Stack:
+Type: AWS::CloudFormation::Stack
+DependsOn: RouteStack
+Properties:
+TemplateURL: ./ec2.yaml
+Parameters:
+InstanceName: !Sub '${Name}-private-ec2'
+SubnetId: !GetAtt VpcStack.Outputs.PrivateSubnetId
+SecurityGroupId: !GetAtt SgStack.Outputs.PrivateSgId
+KeyName: !Ref KeyName
+InstanceType: !Ref InstanceType
+Outputs:
+PublicEc2Ip: {Value: !GetAtt PublicEc2Stack.Outputs.PublicIp}
+PrivateEc2Ip: {Value: !GetAtt PrivateEc2Stack.Outputs.PrivateIp}
+NatPublicIp: {Value: !GetAtt NatStack.Outputs.NatPublicIp}

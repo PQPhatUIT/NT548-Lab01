@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Public and private route tables
+Parameters:
+Name: {Type: String}
+VpcId: {Type: 'AWS::EC2::VPC::Id'}
+IgwId: {Type: String}
+NatGatewayId: {Type: String}
+PublicSubnetId: {Type: 'AWS::EC2::Subnet::Id'}
+PrivateSubnetId: {Type: 'AWS::EC2::Subnet::Id'}
+Resources:
+PublicRt:
+Type: AWS::EC2::RouteTable
+Properties:
+VpcId: !Ref VpcId
+Tags: [{Key: Name, Value: !Sub '${Name}-public-rt'}]
+PublicDefaultRoute:
+Type: AWS::EC2::Route
+Properties:
+RouteTableId: !Ref PublicRt
+DestinationCidrBlock: 0.0.0.0/0
+GatewayId: !Ref IgwId
+PublicAssoc:
+Type: AWS::EC2::SubnetRouteTableAssociation
+Properties: {SubnetId: !Ref PublicSubnetId, RouteTableId: !Ref PublicRt}
+PrivateRt:
+Type: AWS::EC2::RouteTable
+Properties:
+VpcId: !Ref VpcId
+Tags: [{Key: Name, Value: !Sub '${Name}-private-rt'}]
+PrivateDefaultRoute:
+Type: AWS::EC2::Route
+Properties:
+RouteTableId: !Ref PrivateRt
+DestinationCidrBlock: 0.0.0.0/0
+NatGatewayId: !Ref NatGatewayId
+PrivateAssoc:
+Type: AWS::EC2::SubnetRouteTableAssociation
+Properties: {SubnetId: !Ref PrivateSubnetId, RouteTableId: !Ref PrivateRt}
