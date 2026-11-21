@@ -6,9 +6,12 @@ Parameters:
   SecurityGroupId: {Type: 'AWS::EC2::SecurityGroup::Id'}
   KeyName: {Type: 'AWS::EC2::KeyPair::KeyName'}
   InstanceType: {Type: String, Default: t3.micro}
+  IsPublic: {Type: String, Default: 'false', AllowedValues: ['true', 'false']}
   AmiId:
     Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+Conditions:
+  HasPublicIp: !Equals [!Ref IsPublic, 'true']
 Resources:
   Instance:
     Type: AWS::EC2::Instance
@@ -24,5 +27,7 @@ Resources:
           Ebs: {Encrypted: true, VolumeType: gp3}
       Tags: [{Key: Name, Value: !Ref InstanceName}]
 Outputs:
-  PublicIp: {Value: !GetAtt Instance.PublicIp}
+  PublicIp:
+    Condition: HasPublicIp
+    Value: !GetAtt Instance.PublicIp
   PrivateIp: {Value: !GetAtt Instance.PrivateIp}

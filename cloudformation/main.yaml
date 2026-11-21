@@ -44,6 +44,7 @@ Resources:
       TemplateURL: ./ec2.yaml
       Parameters:
         InstanceName: !Sub '${Name}-public-ec2'
+        IsPublic: 'true'
         SubnetId: !GetAtt VpcStack.Outputs.PublicSubnetId
         SecurityGroupId: !GetAtt SgStack.Outputs.PublicSgId
         KeyName: !Ref KeyName
@@ -63,3 +64,5 @@ Outputs:
   PublicEc2Ip: {Value: !GetAtt PublicEc2Stack.Outputs.PublicIp}
   PrivateEc2Ip: {Value: !GetAtt PrivateEc2Stack.Outputs.PrivateIp}
   NatPublicIp: {Value: !GetAtt NatStack.Outputs.NatPublicIp}
+
+
